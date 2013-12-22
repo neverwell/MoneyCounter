@@ -1,6 +1,6 @@
 
 
-int mian()
+int main()
 {
 
 
