@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include<TCHAR.H>
 
-BYTE *RmwRead8BitBmpFile2Img(const TCHAR * filename,int *width,int *height)
+BYTE *Read8BitBmpFile2Img(const TCHAR * filename,int *width,int *height)
 {
     //读取8Bit灰度图像，文件格式是：bmp
 	FILE *BinFile;
@@ -47,7 +47,7 @@ BYTE *RmwRead8BitBmpFile2Img(const TCHAR * filename,int *width,int *height)
 }
 
 
-bool RmwWrite8BitImg2BmpFile(BYTE *pImg,int width,int height,const TCHAR * filename)
+bool Write8BitImg2BmpFile(BYTE *pImg,int width,int height,const TCHAR * filename)
 {
      //写8Bit灰度图像，文件格式为：bmp
 	//注意，当宽度不足4的倍数时自动添加成4的倍数
@@ -114,7 +114,7 @@ bool RmwWrite8BitImg2BmpFile(BYTE *pImg,int width,int height,const TCHAR * filen
 }
 
 
-BYTE *DAL_Read24bitFileToBmp(const TCHAR *filename,int *width,int *height)
+BYTE *Read24bitFileToBmp(const TCHAR *filename,int *width,int *height)
 {
     BITMAPFILEHEADER bfHeader;//位图文件头
 	BITMAPINFOHEADER biHeader;//位图信息头
@@ -185,7 +185,7 @@ BYTE *DAL_Read24bitFileToBmp(const TCHAR *filename,int *width,int *height)
     return pImg;
 }
 
-BOOL DalWrite24bitBmpToImg(BYTE *pImg,int width,int height,const TCHAR * filename)
+BOOL Write24bitBmpToImg(BYTE *pImg,int width,int height,const TCHAR * filename)
 {
     //写24bit的bmp图片
     FILE *imgFile;
@@ -265,7 +265,7 @@ BOOL DalWrite24bitBmpToImg(BYTE *pImg,int width,int height,const TCHAR * filenam
 //  
 ////////////////////////////////////////////////////////////////////////////////
 
-void DAL_GryImgToRGBImg(BYTE *pGryImg1,BYTE *pGryImg2,BYTE *pGryImg3,int width,int height,BYTE *pRGBImg)
+void GryImgToRGBImg(BYTE *pGryImg1,BYTE *pGryImg2,BYTE *pGryImg3,int width,int height,BYTE *pRGBImg)
 {
 	BYTE *pCur1,*pCur2,*pCur3,*pCur,*pEnd;
 	pCur=pRGBImg;
@@ -292,7 +292,7 @@ void DAL_GryImgToRGBImg(BYTE *pGryImg1,BYTE *pGryImg2,BYTE *pGryImg3,int width,i
 //  图像垂直反转函数
 //  
 ////////////////////////////////////////////////////////////////////////////////
-void DAL_FlipVertical(BYTE *pImg,bool isRGB,int width,int height)
+void FlipVertical(BYTE *pImg,bool isRGB,int width,int height)
 {
     if (isRGB)  return ;
     BYTE *pTemp=new BYTE[width];
