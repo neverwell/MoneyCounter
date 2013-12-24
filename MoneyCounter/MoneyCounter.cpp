@@ -7,11 +7,17 @@
 先采用一定的阈值二值化整个图像，然后先膨胀后腐蚀去掉孤立的点并把图像内部弄成一个整体，
 然后依次从上到下从左到右扫描到为255的点，即找出边界，这样就画出了矩形框，为了找到准确的角度，
 使用hough变换找到直线，并记录下角度
+然后对找到的角度进行简单的统计，找到出现次数最多的角度，这个就是纸币的角度
+然根据角度来对纸币图像进行旋转
 ***/
 
 using namespace std;
 using namespace cv;
 
+struct angle_count{
+  float angle;//角度
+  int   nCount;//出现次数
+};
 
 /// Global variables
 
@@ -180,7 +186,13 @@ void DoHough(Mat& dst)
 	vector<float> horizontal_angle;
 	vector<float> angles;
 
+
 	HoughLines(dst, lines, 1, CV_PI/180, 100, 0, 0 );
+	struct angle_count *angle_struct=new struct angle_count[lines.size()];
+	memset(angle_struct,lines.size(),sizeof(struct angle_count));
+	int nnn=0;
+	bool flag=false;
+	//清空
 	dst=Mat::zeros(dst.rows,dst.cols,CV_8U);
 	for( size_t i = 0; i < lines.size(); i++ )
 	{
@@ -190,6 +202,21 @@ void DoHough(Mat& dst)
 		double x0 = a * rho, y0 = b * rho;
 		//记录垂直直线的角度和水平直线的角度
 		angles.push_back(theta);
+		flag=false;
+		for (int j = 0; j < nnn; j++)
+		{
+			if(abs(theta-angle_struct[j].angle)<0.001)
+			{
+				flag=true;
+				angle_struct[j].nCount+=1;
+			}
+		}
+		if(!flag)
+		{
+			angle_struct[nnn].angle=theta;
+			angle_struct[nnn].nCount=1;
+			nnn++;
+		}
 
 		pt1.x = cvRound(x0 + 1000 * (-b));
 		pt1.y = cvRound(y0 + 1000 * (a));
@@ -200,5 +227,20 @@ void DoHough(Mat& dst)
 		//cout<<vertical_angle[i]<<endl;
 		//break;
 	}
+
+	//找到最大的角度
+	int max=0;
+	float perfact_angle=0.0;
+	for (int i = 0; i < nnn; i++)
+	{
+		if(angle_struct[i].nCount>max)
+		{
+		   max=angle_struct[i].nCount;
+		   perfact_angle=angle_struct[i].angle;
+		}
+	}
+	cout<<endl<<endl<<perfact_angle<<endl;
+
 }
+
 
