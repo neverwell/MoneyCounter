@@ -11,6 +11,13 @@
 然根据角度来对纸币图像进行旋转
 ***/
 
+
+/******
+找四个点的算法，先找到四个边的数组，然后找分别找到四个端点，然后进行平均即可
+//&&&这种算法不能应用于有折角或者缺角的纸币
+//&&&对于那些纸币还是要找出直线来然后进行直线拟合求出交点即为纸币的四个点
+*****/
+
 using namespace std;
 using namespace cv;
 
@@ -36,7 +43,7 @@ char* trackbar_value = "Value";
 /// 上下左右扫描找到直线
 Mat FindLine(Mat I);
 ///hough变换找到直线
-void DoHough(Mat& dst);
+float DoHough(Mat& dst);
 
 /**
 * @function main
@@ -67,9 +74,11 @@ int main( int argc, char** argv )
 	4: Threshold to Zero Inverted
 	*/
 	threshold_type=0;//二值化
-	threshold_value=10;//二值化值
+	//threshold_value=10;//二值化值信比达的钱
+	threshold_value=10;
 	//二值化
 	threshold( src_gray, dst, threshold_value, max_BINARY_value,threshold_type );
+	imwrite("E:\\code\\MoneyCounter\\MoneyCounter\\Image\\0007.bmp",dst);
 
 	//先膨胀后腐蚀，把孤立的点都消除
 	int erosion_elem = 0;
@@ -90,18 +99,28 @@ int main( int argc, char** argv )
 	dilate( dst, erosion_dst, element );
 	erode( erosion_dst, dilation_dst, element );
 
+	Mat sobel_dst;
+	Sobel(dilation_dst,sobel_dst,CV_8U,1,0);
 
+	imshow("Sobel",sobel_dst);
 	//直接找到四个边
 	Mat show_binary=FindLine(dilation_dst);
 	imshow("edge",show_binary);
+	imwrite("E:\\code\\MoneyCounter\\MoneyCounter\\Image\\edge.bmp",show_binary);
 
-	//利用Hough变换找到所有的直线,只有四根
-	DoHough(show_binary);
+
+	//利用Hough变换找到所有的直线,在多根直线的角度中找到最佳角度并返回
+	float perfact_angle=DoHough(show_binary);
 
 	//cout<<dst;
 
 	imwrite(resultfilename,dst);
 	imshow( window_name, show_binary );
+
+	//根据最佳角度，对原始图像进行旋转
+	Mat ttt_image=src.clone();
+	
+
 
 	waitKey( 0 );
 
@@ -168,7 +187,7 @@ Mat FindLine(Mat I)
 				flag1=true;
 			}
 			if(p[i]==0&&flag1&&(!flag2))
-			{//找下边的边
+			{//找下边的边  不能这样扫过去，应该直接左右上下依次的扫，因为中间的部分不一定能膨胀腐蚀消失
 				ps[i]=255;
 				flag2=true;
 				break;
@@ -179,7 +198,7 @@ Mat FindLine(Mat I)
 	return show_binary;
 }
 
-void DoHough(Mat& dst)
+float DoHough(Mat& dst)
 {//霍夫变换
 	vector<Vec2f> lines;
 	vector<float> vertical_angle;
@@ -222,13 +241,13 @@ void DoHough(Mat& dst)
 		pt1.y = cvRound(y0 + 1000 * (a));
 		pt2.x = cvRound(x0 - 1000 * (-b));
 		pt2.y = cvRound(y0 - 1000 * (a));
-		line( dst, pt1, pt2, Scalar(255,0,0), 1, CV_AA);
+		//line( dst, pt1, pt2, Scalar(255,0,0), 1, CV_AA);
 		cout<<theta<<endl;
 		//cout<<vertical_angle[i]<<endl;
 		//break;
 	}
 
-	//找到最大的角度
+	//找到最佳角度
 	int max=0;
 	float perfact_angle=0.0;
 	for (int i = 0; i < nnn; i++)
@@ -239,7 +258,13 @@ void DoHough(Mat& dst)
 		   perfact_angle=angle_struct[i].angle;
 		}
 	}
+	//输出最佳角度
 	cout<<endl<<endl<<perfact_angle<<endl;
+
+	//画出最佳角度的边框
+
+
+	return perfact_angle;
 
 }
 
